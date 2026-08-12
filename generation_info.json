@@ -1,0 +1,56 @@
+{
+  "reference_energy": -630.070998,
+  "reference_cell": [
+    [
+      24.937723,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      6.17424,
+      0.0
+    ],
+    [
+      -2.781848,
+      0.0,
+      11.431269
+    ]
+  ],
+  "counts": {
+    "bulk": 400,
+    "strained": 300,
+    "high_T": 300,
+    "test": 200
+  },
+  "generation": {
+    "bulk": {
+      "disp_scale": 0.04,
+      "scale_range": [
+        0.98,
+        1.02
+      ]
+    },
+    "strained": {
+      "triaxial_range": 0.05,
+      "shear_range": 0.03,
+      "disp_scale": 0.02
+    },
+    "high_T": {
+      "disp_scale": 0.15,
+      "scale_range": [
+        0.97,
+        1.03
+      ]
+    },
+    "test": {
+      "disp_scale": 0.05,
+      "scale_range": [
+        0.98,
+        1.02
+      ]
+    }
+  },
+  "seed": 42,
+  "method": "ASE-based random displacement + strain matrices, lattice variation for strained, ABINIT will compute energies/forces"
+}
