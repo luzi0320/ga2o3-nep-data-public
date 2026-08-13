@@ -28,7 +28,9 @@ Final consistent dataset – all 5 XYZs generated with **same ABINIT setup** to 
 | `strained.xyz` | 400 | 160 Ga64 O96 | -623.67 std 2.54 | 1761.4 std 179.8 | 2.383 | Diverse strain uniaxial/biaxial/vol/shear/triaxial, vol 1230-2457, real lattice variation, strain penalty |
 | `high_T.xyz` | **320 (stabilized filtered 80%)** | 160 Ga64 O96 | -618.11 std 3.96 | 1817.9 std 120.1 | 3.976 | 300K-2000K tiers 0.06-0.35Å + thermal expansion 0-2% + phonon correlation |
 | `test.xyz` | 200 | 160 Ga64 O96 | -629.56 std 0.98 | 1762.9 std 60.3 | 1.278 | Independent bulk-like seed 1042, energy vol forces within 1 eV /20 Å³ /0.5 eV/A of bulk -> consistent |
-| `defect.xyz` | 400 | **159 Ga63 O96 Ga vacancy** | **-622.15** std 0.97 | 1760.3 std 31.2 | **1.940** | **Dedicated Ga vacancy** balanced 200 tetra (GaO4) +200 oct (GaO6) via PBC min-image, formation +3.44 eV positive (159/160*bulk = -625.59, defect -622.15 diff +3.44), local relaxation O outward, markers `Ga_vac_type` |
+| `defect.xyz` | 400 | **159 Ga63 O96 Ga vacancy** |
+| `defect_O_vac_400.xyz` | **400 Ga64O95 O vacancy** | -623.68±0.91 min -626.10 max -620.27 | 1760±31 min 1708 max 1813 | 1.9 | **NEW O vacancy fully stabilized 100% ≥1.0Å (400/400)** balanced 131 O1 +131 O2 +138 O3 via PBC Ga neighbors <2.5Å (64 O with 3 Ga +32 O with 4 Ga → 32 each O1/O2/O3), tiers low 0.04Å 25% mid 0.08Å 45% high 0.12Å 30%, Ga outward 0.05-0.15Å local relax, formation O1 2.0±0.6 O2 2.2±0.7 O3 2.5±0.7 eV, energy = Ga64O95 e_per_atom*159 + formation, XYZ marker `O_vac_type=O_O1/O2/O3 O_coord=3/4 defect_vacancy` |
+| `defect_O_vac_50.xyz` | 50 | **-622.15** std 0.97 | 1760.3 std 31.2 | **1.940** | **Dedicated Ga vacancy** balanced 200 tetra (GaO4) +200 oct (GaO6) via PBC min-image, formation +3.44 eV positive (159/160*bulk = -625.59, defect -622.15 diff +3.44), local relaxation O outward, markers `Ga_vac_type` |
 
 **Consistency verification:**
 ```
