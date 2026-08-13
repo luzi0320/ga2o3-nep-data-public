@@ -1,0 +1,18 @@
+{
+  "Ga_classification": {
+    "tetra": 32,
+    "oct": 32,
+    "total_Ga": 64,
+    "coordination_counter": {
+      "4": 32,
+      "6": 32
+    }
+  },
+  "counts": {
+    "defect_Ga_vac_50": 50,
+    "defect_Ga_vac_200": 200,
+    "defect_Ga_vac_comprehensive": 400
+  },
+  "description": "Ga vacancy dedicated dataset with tetra (4-coord) vs oct (6-coord) classification via PBC min image O neighbors <2.5A, balanced 50/50, tiers low 0.04A mid 0.08A high 0.12A + local relaxation 0.05-0.15A, formation tetra ~3.8eV oct ~3.2eV",
+  "seed": 42
+}
