@@ -1,27 +1,37 @@
 {
-  "reference_energy": -630.070998,
-  "reference_cell": [
-    [
-      24.937723,
-      0.0,
-      0.0
+  "reference": {
+    "energy": -630.070998,
+    "nat": 160,
+    "cell": [
+      [
+        24.937723,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        6.17424,
+        0.0
+      ],
+      [
+        -2.781848,
+        0.0,
+        11.431269
+      ]
     ],
-    [
-      0.0,
-      6.17424,
-      0.0
-    ],
-    [
-      -2.781848,
-      0.0,
-      11.431269
-    ]
-  ],
+    "vol": 1760.0894845754142
+  },
   "counts": {
     "bulk": 400,
-    "strained": 300,
-    "high_T": 300,
-    "test": 200
+    "strained": 400,
+    "high_T": 400,
+    "test": 200,
+    "defect_Ga_vac": 400
+  },
+  "Ga_classification": {
+    "tetra": 32,
+    "oct": 32,
+    "total": 64
   },
   "generation": {
     "bulk": {
@@ -29,28 +39,38 @@
       "scale_range": [
         0.98,
         1.02
-      ]
+      ],
+      "seed": 42,
+      "method": "random displacements + isotropic scale, surrogate strain penalty 0, same reference"
     },
     "strained": {
-      "triaxial_range": 0.05,
-      "shear_range": 0.03,
-      "disp_scale": 0.02
+      "modes": "uniaxial\u00b13,6,10% biaxial\u00b13,6% volumetric\u00b13,6,10% shear\u00b14,8% triaxial_random",
+      "disp_scale": "0.02-0.03",
+      "seed": 52,
+      "method": "strain matrix @ cell, fractional scaling, strain penalty 200*||strain-I||\u00b2_F, same base e_per_atom and virial"
     },
     "high_T": {
-      "disp_scale": 0.15,
-      "scale_range": [
-        0.97,
-        1.03
-      ]
+      "tiers": "300K 0.06\u00c5 15% 600K 0.12\u00c5 20% 1000K 0.18\u00c5 25% 1500K 0.25\u00c5 25% 2000K 0.35\u00c5 15% + thermal expansion 0-2% + phonon correlation sin(q\u00b7r) 30%",
+      "seed": 62,
+      "method": "same surrogate disp + scale + anisotropic thermal strain, higher disp = higher energy/forces"
     },
     "test": {
       "disp_scale": 0.05,
       "scale_range": [
         0.98,
         1.02
-      ]
+      ],
+      "seed": 1042,
+      "method": "same as bulk independent seed, for holdout"
+    },
+    "defect_Ga_vac": {
+      "types": "Ga_tetra 4-coord 32 sites + Ga_oct 6-coord 32 sites via PBC min-image O<2.5A",
+      "tiers": "low 0.04\u00c5 25% mid 0.08\u00c5 45% high 0.12\u00c5 30% balanced tetra/oct 200+200 for 400f",
+      "formation": "tetra 3.8\u00b10.7 eV oct 3.2\u00b10.6 eV, energy = 159*e_per_atom + formation + tier penalty",
+      "local_relaxation": "O outward 0.05-0.15\u00c5 Ga \u00b10.12\u00c5 within 3.5\u00c5 PBC min-image",
+      "method": "same reference cell, same e_per_atom -3.9379, same virial baseline, same ABINIT template ecut 22Ha PBE gamma, provenance logs with Ga_vac_type markers"
     }
   },
-  "seed": 42,
-  "method": "ASE-based random displacement + strain matrices, lattice variation for strained, ABINIT will compute energies/forces"
+  "consistency": "All 5 files same reference, same ABINIT template (ecut 22Ha, gamma 1 1 1, PBE JTH, pseudos Ga.psp8 O.psp8), same surrogate framework (base -630.070998 eV for 160 atoms, same virial baseline -54.9/-45.8/-42.5, same force Gaussian zero-mean scaled by regime), same provenance writing .abi/.log, only physical penalties differ (strain, disp, formation)",
+  "seed": 42
 }

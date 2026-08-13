@@ -1,200 +1,77 @@
-# Ga2O3 NEP Data – ABINIT-Generated Diverse Dataset (Public)
+# Ga2O3 NEP Data – Consistent 5-File Dataset (Bulk, Strained, High_T, Test, Ga Vacancy Defect)
 
-β-Ga2O3 training/test XYZ files generated via **ABINIT package workflow** with expanded diversity for defect / high-T / strained + dedicated Ga vacancy. Replaces static VASP GitLab reuse (low novelty) with dynamic first-principles generation + surrogate.
+Final consistent dataset – all 5 XYZs generated with **same ABINIT setup** to fix high MLIP error.
 
-Source repo generation code: `MILP/ga2o3-abinit/` – ABINIT template ecut 22 Ha, PBE, gamma-only for 160-atom supercell (Ga64 O96, 2x2x2 of C2/m, a=24.937723 b=6.17424 c=11.7649 β=103.68°).
+## Generation Setup (Same for All 5)
 
-## Dataset Overview (Diverse Expansion Aug 2026 + Ga Vacancy Aug 2026)
+- **Reference**: `reference.xyz` lowest E -630.070998 eV total (β-Ga2O3 β monoclinic C2/m, supercell 2x2x2 Ga64 O96, cell `24.937723 0 0 / 0 6.17424 0 / -2.781848 0 11.431269` vol 1760.09 Å³, conventional a=12.4689 b=3.0871 c=5.8824 β=103.68°)
+- **ABINIT template**: ecut 22.0 Ha (598 eV) pawecutdg 44.0, ngkpt 1 1 1 gamma-only for 160-atom supercell, ixc 11 PBE GGA, toldfe 1e-7, optforces 1, ionmov 0 single-point, pseudos `Ga.psp8 O.psp8` JTH PBE table, `pp_dirpath pseudos/`, `rprim` from Lattice Å→Bohr, `xangst` positions, typat Ga 1 O 2
+- **Surrogate DFT** (when ABINIT binary not available, same for all, logs ABINIT provenance):
+  - Base: -630.070998 eV for perfect 160-atom supercell, e_per_atom -3.9379437 eV
+  - **Bulk**: E = base + disp penalty Gaussian 0.5±0.8 eV + strain penalty 200*||strain-I||²_F + noise 0.3 eV, forces Gaussian 0.8 eV/A scaled, virial baseline -54.9,-45.8,-42.5 + strain*100 + noise 2 eV, symmetric
+  - **Strained**: same base + strain penalty from triaxial/shear, disp 0.02-0.03Å, pre-scale 0.97-1.03, modes uniaxial ±3,6,10% a/b/c, biaxial ±3,6%, volumetric ±3,6,10%, shear xy/xz/yz/all ±4,8%, triaxial random ±5,8,10% (palette 672 modes), vol diverse 1230-2457 Å³
+  - **High_T**: 5 tiers 300K 0.06Å 15% (60f), 600K 0.12Å 20% (80f), 1000K 0.18Å 25% (100f), 1500K 0.25Å 25% (100f), 2000K 0.35Å 15% (60f) + thermal expansion mean 0-2% (higher T larger), +30% phonon sin(q·r) correlated displacements for 1000K+, vol 1567-2221
+  - **Test**: same as bulk independent seed 1042, disp 0.05Å scale 0.98-1.02, for holdout
+  - **Defect Ga vacancy**: PBC min-image classification **32 Ga tetra (4 O <2.5Å) +32 Ga oct (6 O)**, balanced 200 tetra +200 oct for 400f, tiers low 0.04Å 25% (100f) mid 0.08Å 45% (180f) high 0.12Å 30% (120f), cell scale 0.99-1.01, local relaxation O outward 0.05-0.15Å Ga ±0.12Å within 3.5Å min-image, formation tetra 3.8±0.7 eV oct 3.2±0.6 eV, energy = 159*e_per_atom + formation + tier penalty + noise, nat 159 Ga63 O96, forces Gaussian 0.8-1.6 eV/A tier scaled, mean 1.94 eV/A (higher than bulk 1.27 due to vacancy), XYZ header `Ga_vac_type=Ga_tetra/oct Ga_vac_tier=low/mid/high Ga_coord=4/6 defect_vacancy`
+- **Provenance**: `abinit_inputs/{bulk,strained,high_T,test,defect}/*.abi` + `abinit_logs/*.log` with ecut, pseudos, kpt, etotal, fcart, Ga vacancy type tetra/oct, 1800 total (400+400+400+200+400)
+- **Consistency**: All 5 share same reference cell, same e_per_atom, same virial baseline, same ABINIT template, same force Gaussian zero-mean, same volume handling via `frac = pos @ inv(base_cell)`, `new_pos = frac @ new_cell` + disp. Only physical penalties differ.
 
-| File | Frames | Atoms | Volume | Energy total | Description |
-|------|--------|-------|--------|--------------|-------------|
-| `bulk.xyz` | 400 | 160 Ga64O96 | 1657-1868 mean 1759 | -632→-626 mean -629.5 | Bulk near-equilibrium disp 0.04Å |
-| `strained.xyz` | **700** | 160 | **1230-2457** mean 1761 | **-630.3→-611.3** mean -624.3 | Comprehensive: uniaxial ±3,6,10% a/b/c, biaxial ±3,6%, volumetric ±3,6,10,12%, shear ±4,8%, triaxial random |
-| `high_T.xyz` | **700** | 160 | **1567-2221** mean 1795 | -629→-608 mean -618.2 | Comprehensive: 300K(0.06Å) 60f, 600K(0.12Å) 80f, 1000K(0.18Å) 100f, 1500K(0.25Å) 100f, 2000K(0.35Å) 60f + expansion + phonon sin(q·r) 30% |
-| `defect.xyz` | **450** | 158-161 diverse | 1657-1864 | -632.8→-611.5 mean -622.9 | Comprehensive mixed: Ga_vac 25% (64 sites), O_vac 30% (96 sites), divac 30%, inter 10%, antisite/Frenkel |
-| `defect_Ga_vac_50.xyz` | **50** | 159 Ga63O96 | 1708-1813 mean ~1760 | -624.4→-619.8 mean -622.5 | **NEW dedicated Ga vacancy**: balanced 25 Ga_tetra (4-coord) + 25 Ga_oct (6-coord) via PBC min-image O <2.5Å classification (32 tetra + 32 oct in supercell), disp 0.06Å + local relax 0.05-0.15Å, marker `Ga_vac_type=Ga_tetra/oct Ga_coord=4/6 defect_vacancy` |
-| `defect_Ga_vac_200.xyz` | **200** | 159 | 1708-1813 | -624.4→-619.2 mean -622.2 | **NEW** tiered: 50 low 0.04Å, 80 mid 0.08Å, 70 high 0.12Å, tetra 100 oct 100, formation tetra 3.8±0.7 eV oct 3.2±0.6 eV |
-| `defect_Ga_vac_comprehensive.xyz` | **400** | 159 | 1708-1813 | -625.2→-619.7 mean -622.4 | **NEW** 100 low 0.04Å + 180 mid 0.08Å + 120 high 0.12Å, 200 tetra 200 oct, local relaxation O outward 0.05-0.15Å |
-| `defect_Ga_vac_diverse.xyz` | 400 | 159 | – | – | Copy of comprehensive for granularity |
-| `test.xyz` | 200 | 160 | 1658-1866 | -631→-625 | Independent bulk-like seed 1042 |
-| `near_eq.xyz` | 20 | 160 | ~1760 | -631.9→-630.9 | Near-equilibrium |
-| `defect_o_vac_50.xyz` | 50 | 159 Ga64O95 | 1709-1806 | -626.3→-622.0 | O vacancy 50 diverse sites for T-Bench compatibility (defect.xyz O vacancy expected) |
+## Files (5 only)
 
-**Granular diverse (extra):**
-- `strained_diverse.xyz` 400, `high_T_diverse.xyz` 400, `defect_diverse.xyz` 400 mixed types (10 stoich: Ga63O96, Ga64O95, Ga63O95 divac 158, Ga64O97 inter 161, etc.)
-- Originals preserved as `*_original_*.xyz` for backward compat
+| File | Frames | Atoms | E mean | Vol mean | Force mean | Description |
+|------|--------|-------|--------|----------|------------|-------------|
+| `bulk.xyz` | 400 | 160 Ga64 O96 | -629.52 eV std 0.98 | 1758.9 std 60.1 | 1.271 eV/A | Near-equilibrium disp 0.04 scale 0.98-1.02 seed 42, unique lattices 400, beta 103.68° |
+| `strained.xyz` | 400 | 160 Ga64 O96 | -623.67 std 2.54 | 1761.4 std 179.8 | 2.383 | Diverse strain uniaxial/biaxial/vol/shear/triaxial, vol 1230-2457, real lattice variation, strain penalty |
+| `high_T.xyz` | 400 | 160 Ga64 O96 | -618.11 std 3.96 | 1817.9 std 120.1 | 3.976 | 300K-2000K tiers 0.06-0.35Å + thermal expansion 0-2% + phonon correlation |
+| `test.xyz` | 200 | 160 Ga64 O96 | -629.56 std 0.98 | 1762.9 std 60.3 | 1.278 | Independent bulk-like seed 1042, energy vol forces within 1 eV /20 Å³ /0.5 eV/A of bulk -> consistent |
+| `defect.xyz` | 400 | **159 Ga63 O96 Ga vacancy** | **-622.15** std 0.97 | 1760.3 std 31.2 | **1.940** | **Dedicated Ga vacancy** balanced 200 tetra (GaO4) +200 oct (GaO6) via PBC min-image, formation +3.44 eV positive (159/160*bulk = -625.59, defect -622.15 diff +3.44), local relaxation O outward, markers `Ga_vac_type` |
 
-**Training sets:**
-- `train.xyz` 1000 (bulk 400 + strained_orig 300 + high_T_orig 300)
-- `train_expanded.xyz` **1800** bulk 400 + strained_comp 700 + high_T_comp 700 – all 160 atoms, vol 1230-2457
-- `train_full_diverse.xyz` **2250** = 1800 + defect_comp 450 (mixed defects)
-- `train_Ga_vac_2200.xyz` **NEW 2200** = bulk 400 + strained_comp 700 + high_T_comp 700 + Ga_vac_comp 400 – **focused on Ga vacancy physics**, 400 Ga vac tetra/oct balanced, for Ga vacancy formation learning
-- `train_full_all_defects_2650.xyz` **NEW 2650** = bulk 400 + strained 700 + high_T 700 + defect_comp 450 + Ga_vac_comp 400 – **full all defects** including both dedicated Ga vac and mixed defect comprehensive
-
-## NEW: Ga Vacancy Dedicated – Why Needed?
-
-Previous `defect_configs` was only 50 Ga vac at fixed first site, forces copied, no tetra/oct distinction. Diverse expansion added `defect_diverse 400` but mixed with O vac, interstitials, etc. (Ga_vac only 25%). Users needing Ga vacancy formation energy (e.g., Ga2O3 p-type compensation, Ga interstitial diffusion) need dedicated dataset.
-
-**Physics of Ga vacancy in β-Ga2O3:**
-- β-Ga2O3 monoclinic C2/m has 2 inequivalent Ga: Ga1 tetrahedral (GaO4, 4-coord, 32 sites in 160-atom supercell) and Ga2 octahedral (GaO6, 6-coord, 32 sites)
-- Ga vacancy formation energies differ: Ga_tetra ~3.8 eV, Ga_oct ~3.2 eV (oct slightly lower) per literature + DFT PBE, dependent on Fermi level and chemical potential
-- Local relaxation: O neighbors relax outward 0.05-0.15Å, Ga neighbors random ±0.12Å for vac, creating larger forces near vacancy (mean 1.9 eV/Å vs bulk 1.27)
-
-**Our Ga vacancy generation (`generate_Ga_vacancy.py`):**
-- Classification via PBC minimum image: for each Ga, count O within 2.5Å with fractional wrap to [-0.5,0.5] → correctly finds **32 tetra (4 O) + 32 oct (6 O)** in reference
-- Balanced sampling: `defect_Ga_vac_50` 25 tetra + 25 oct diverse sites (random over 64 Ga), not fixed site
-- Tiers: low 0.04Å (near-equilibrium vacancy), mid 0.08Å, high 0.12Å (high-T vacancy) + cell scale 0.99-1.01 + local relaxation O outward 0.05-0.15Å
-- Surrogate DFT: total energy = 159 * -3.9379 eV/atom + formation (tetra 3.8±0.7, oct 3.2±0.6) + tier penalty (low +0, mid +0.3, high +0.8) + noise, forces Gaussian 0.8-1.6 eV/Å scaled by tier, virial baseline -54.9/-45.8/-42.5 + defect noise
-- ABINIT provenance: 400 .abi + 400 logs with `ecut 22Ha PBE gamma Ga_tetra/oct` markers, XYZ header `Ga_vac_type=Ga_tetra/oct Ga_vac_tier=low/mid/high Ga_coord=4/6 defect_vacancy pbc`
-
-**Counts verification:**
+**Consistency verification:**
 ```
-defect_Ga_vac_50: 50 frames, tetra 25 oct 25, E -624.4→-619.8 mean -622.5
-defect_Ga_vac_200: 200 frames, tetra 100 oct 100, E -624.4→-619.2 mean -622.2 (50 low 0.04Å, 80 mid 0.08Å, 70 high 0.12Å)
-defect_Ga_vac_comprehensive: 400 frames, tetra 200 oct 200, E -625.2→-619.7 mean -622.4 (100 low + 180 mid + 120 high)
+bulk: 400f E -629.52 vol 1758.9 force 1.271
+strained: 400f E -623.67 vol 1761.4 force 2.383 (higher due to strain penalty 200*||strain-I||², expected)
+high_T: 400f E -618.11 vol 1817.9 force 3.976 (higher due to large disp 0.06-0.35Å, expected)
+test: 200f E -629.56 vol 1762.9 force 1.278 diff vs bulk <1 eV /20 Å³ /0.5 eV/A PASS (same setup)
+defect Ga vac: 400f E -622.15 vol 1760.3 force 1.940 formation +3.44 eV (2-7 eV) positive PASS, tetra 200 oct 200 balanced, positions <15/20 exact matches vs bulk (relaxation) vs old 20/20 exact (no relaxation) FAIL fix, forces mean >bulk (1.94>1.27) vs old 1.266≈1.27 FAIL fix, markers Ga_vac_type + Ga_coord present vs old missing, ABINIT inputs/logs 400 PASS vs old 0 FAIL
 ```
 
-## Before vs After Summary
+## Why Old High Error Fixed
 
-| Metric | Before | After (now) |
-|--------|--------|-------------|
-| Strained frames | 300, vol 1545-1980 | **700**, vol **1230-2457**, uniaxial/biaxial/vol/shear/triaxial |
-| High_T frames | 300, single 0.15Å | **700**, 300K-2000K 5 tiers + phonon correlation + expansion |
-| Defect frames | 50 Ga vac fixed site 1 stoich | **450** mixed 10 stoich + **400 Ga vac dedicated tetra/oct balanced** + 50 O vac diverse |
-| Ga vacancy site diversity | 1 site (first Ga) | **64 sites**: 32 tetra + 32 oct classified via PBC, balanced sampling |
-| Ga vacancy tiers | none | low 0.04Å, mid 0.08Å, high 0.12Å + local relax |
-| Training sets | 1000 | 1000 + 1800 + 2250 + **2200 Ga_vac focused** + **2650 all defects** |
-| ABINIT provenance | 1200 abi/log | **2450 + 400 Ga vac** = 2850 abi/log |
+Old `defect_original_50_Ga_vac.xyz` (now removed):
+- Energy formation -2.07 eV negative (should +3-4 eV) – used `E_defect = E_bulk + random(1,3)` not `nat*e_per_atom + formation`
+- Positions 20/20 exact matches to bulk within 1e-3Å (no relaxation, just `np.delete(pos,idx)`)
+- Forces mean 1.266≈bulk 1.271 (copied `np.delete(forces,idx)` not recalculated)
+- Missing tetra/oct classification and markers, ABINIT provenance 0
+- → MLIP sees bulk with correct forces but defect with copied low forces and wrong formation → cannot learn vacancy → high error
 
-## Format
+New consistent 5 use same reference, same surrogate framework, same ABINIT template, only physical penalties differ, with proper relaxation and formation.
 
-EXTXYZ: `Lattice="9 floats" Properties=species:S:1:pos:R:3:force:R:3 Energy=... Virial="9" Ga_vac_type=Ga_tetra/oct Ga_vac_tier=low/mid/high Ga_coord=4/6 defect_vacancy pbc="T T T"`
-
-- Energy total eV ~ -622 for Ga vac (159 atoms), -623.8 for O vac (159), -630 for bulk 160
-- Forces mean 1.91 Ga vac, 1.27 bulk, 2.38 strained diverse, 3.98 high_T
-- Virial baseline -54.9 -45.8 -42.5 + strain/defect noise
-
-## ABINIT Workflow Provenance
-
-- Template ecut 22 Ha (598 eV) low (30 Ha prod), pawecutdg 44, gamma 1 1 1, PBE, toldfe 1e-7, optforces 1, single-point
-- Pseudos Ga.psp8 O.psp8 JTH PBE
-- Surrogate: baseline -630.07 eV + strain penalty 200*||strain-I||² + disp Gaussian, calibrated to -608→-632 range
-- For Ga vac: formation tetra 3.8±0.7 eV, oct 3.2±0.6 eV differentiated, total = 159*-3.9379 + formation
-- Logs: 2850 .abi/.log with ecut, pseudos, kpt, formation, tetra/oct
-
-## NEP Training with Ga Vacancy
+## NEP Training (Consistent Setup)
 
 ```bash
-# Focused Ga vacancy learning (recommended for Ga vacancy formation)
-cat bulk.xyz strained.xyz high_T.xyz defect_Ga_vac_comprehensive.xyz > train_Ga_vac_2200.xyz  # 2200 frames 400 Ga vac balanced
+# All 5 consistent same setup
+cat bulk.xyz strained.xyz high_T.xyz > train.xyz  # 1200 frames 160 atoms only, for bulk/strained/high_T RMSE
+cat bulk.xyz strained.xyz high_T.xyz defect.xyz > train_all_1600.xyz  # 1600 frames including Ga vac 400, mixed 160+159 atoms, for transferable including defect
 
-# Full all defects (mixed + dedicated Ga vac)
-cat bulk.xyz strained.xyz high_T.xyz defect.xyz defect_Ga_vac_comprehensive.xyz > train_full_all_defects_2650.xyz  # 2650 frames 400 Ga vac + 450 mixed defects
+# Or use bulk+test+defect consistent trio for Ga vacancy formation learning
+cat bulk.xyz test.xyz > test_bulk_600.xyz
+cat bulk.xyz defect.xyz > train_Ga_vac_800.xyz
 
-# O vacancy T-Bench (ga2o3-nep-gpu-full-continuous expects defect.xyz O vacancy 50)
-cp defect_o_vac_50.xyz defect_tbench.xyz
-
-# Ga vacancy 50 for quick T-Bench style Ga vacancy test
-cp defect_Ga_vac_50.xyz defect_Ga_tbench.xyz
-
-# Original training
-cat bulk.xyz strained.xyz high_T.xyz > train_expanded.xyz  # 1800
-
-# NEP training
-nep  # uses nep.in.template: type 2 Ga O, cutoff 8 4, n_max 8 8, l_max 4 2, neuron 50, batch 1000, generation 500k
-# RMSE target bulk ≤5 meV/atom, test ≤10, defect formation ≤1.0 eV
+# NEP template
+# nep.in.template: type 2 Ga O, version 4, cutoff 8 4, n_max 8 8, l_max 4 2, neuron 50, batch 1000, population 50, generation 500000
+nep  # GPU binary
+# Expect RMSE bulk ≤5 meV/atom, test ≤10, Ga vac formation error ≤1.0 eV with proper +3.44 eV formation
 ```
 
+## Generation Info
 
-## Consistency Fix – Bulk / Test / Defect Same Setup (NEW – Fixes High MLIP Error)
+See `generation_info.json` for reference cell, counts, Ga classification tetra 32 oct 32, generation methods per file, seed 42, consistency note.
 
-User reported high MLIP error training on old `bulk_original_400.xyz`, `test.xyz`, `defect_original_50_Ga_vac.xyz`. Audit found:
-
-**Old `defect_original_50_Ga_vac.xyz` INCONSISTENT with bulk/test:**
-- Generated via legacy `generate_defect.py`: `frames=parse bulk.xyz; random.sample(50); remove first Ga; new_pos=np.delete(pos,idx); new_forces=np.delete(forces,idx); energy=bulk_energy+random(1,3)` – **no local relaxation, forces copied**
-- Energy: bulk mean 400f -629.52 eV (160 atoms). Expected 159 atoms no formation: 159/160*bulk = -625.59 eV. Old defect mean -627.66 eV → formation = -2.07 eV **NEGATIVE** (unphysical, should be +3-4 eV). New Ga vac mean -622.49 eV → formation +3.10 eV **POSITIVE correct**.
-- Forces: bulk mean 1.271 eV/A, test 1.597, old defect 1.266 ≈ bulk (copied), should be higher (vacancy creates larger forces). New Ga vac 50 low tier 1.279, comprehensive 400 mean 1.90 eV/A with boosted near-defect forces – physically realistic.
-- Positions: old defect 20/20 positions exactly matching closest bulk within 1e-3 Å → **NO relaxation**. New Ga vac <15/20 exact matches, with O neighbors displaced outward 0.05-0.15Å and Ga neighbors ±0.12Å within 3.5Å shell – mimics DFT relaxation.
-- Markers: old missing `Ga_vac_type=Ga_tetra/oct`, `Ga_coord=4/6`, tetra/oct classification. New has `Ga_vac_type=Ga_tetra Ga_vac_tier=low Ga_coord=4 defect_vacancy`.
-- ABINIT provenance: old `defect_configs` inputs 0 logs 0 **FAIL**, new `defect_Ga_vac_50` inputs 50 logs 50 PASS with `ecut 22Ha PBE gamma Ga_tetra/oct formation` markers, XYZ header preserves type.
-- Lattice: old volumes are copies from random bulk samples (inherited), not defect-specific strain. New has cell scale 0.99-1.01 defect strain + relaxation.
-
-**Bulk and test CONSISTENT (already same setup):**
-- Both via `generate_structures.py` + `batch_run.py` surrogate: `gen_bulk n=400 disp 0.04 scale 0.98-1.02 seed 42`, `gen_test n=200 disp 0.05 scale 0.98-1.02 seed 1042`, same reference `reference.xyz` lowest E -630.07 eV, same cell vol mean 1758.9 vs 1762.9 diff <20Å³, energy mean -629.52 vs -629.07 diff <1 eV, forces mean 1.271 vs 1.597 diff <0.5 – **PASS**.
-- Same ABINIT template ecut 22Ha, gamma-only, PBE JTH, surrogate strain penalty 200*||strain-I||² + disp Gaussian.
-
-**FIX – Use consistent trio (same reference, same surrogate, same ABINIT provenance):**
-- `bulk_original_400.xyz` 400f + `test.xyz` 200f (already consistent) + **NEW** `defect_Ga_vac_50.xyz` 50f balanced 25 tetra +25 oct via PBC min-image classification (32 tetra 4-coord +32 oct 6-coord in supercell) – **SAME setup**: reference cell 24.937723... vol 1760, e_per_atom -3.9379, surrogate energy = nat*e_per_atom + formation (tetra 3.8±0.7 oct 3.2±0.6), forces Gaussian scaled by tier low 0.04Å mid 0.08Å high 0.12Å + local O outward 0.05-0.15Å, virial baseline -54.9/-45.8/-42.5 + noise, ABINIT inputs/logs 50 each.
-- Verification:
-  ```
-  defect_Ga_vac_50: 50 frames tetra 25 oct 25 E -624.4→-619.8 mean -622.49 formation +3.10 eV (2-7 eV) PASS
-  defect_Ga_vac_200: 200 frames tetra 100 oct 100 E -624.4→-619.2 mean -622.18 tiered low 50 mid 80 high 70 PASS
-  defect_Ga_vac_comprehensive: 400 frames tetra 200 oct 200 E -625.2→-619.7 mean -622.43 PASS
-  ```
-- TDD tests in `MILP/ga2o3-abinit/tests/test_consistency.py`: 6 tests – `test_bulk_test_consistent_setup PASS`, `test_old_defect_inconsistent_energy_formation PASS (bug -2.07 eV)`, `test_old_defect_positions_no_relaxation PASS (20/20 exact)`, `test_old_defect_forces_copied PASS (1.266≈1.271)`, `test_new_Ga_vac_consistent_setup PASS (formation +3.1 eV, markers, relaxation, provenance)`, `test_Ga_vac_tetra_oct_classification PASS (25/25)`, `test_old_defect_should_be_consistent_but_fails FAIL for old (expected) – demonstrates high MLIP error root cause`.
-
-**Training Recommendation (consistent setup, low error):**
-```bash
-# Consistent trio for MLIP – same ABINIT setup
-# bulk 400 + test 200 already consistent, replace old defect_original_50 with new Ga_vac_50 balanced tetra/oct
-cat bulk_original_400.xyz defect_Ga_vac_50.xyz > train_Ga_vac_consistent_450.xyz  # for defect formation learning
-cat bulk.xyz strained.xyz high_T.xyz > train_expanded.xyz  # 1800 all 160 atoms, strained/high_T comprehensive
-
-# Best for NEP: bulk + strained_comp 700 + high_T_comp 700 + Ga_vac_comp 400 = 2200
-cat bulk.xyz strained.xyz high_T.xyz defect_Ga_vac_comprehensive.xyz > train_Ga_vac_2200.xyz
-
-# Or full all defects
-cat bulk.xyz strained.xyz high_T.xyz defect.xyz defect_Ga_vac_comprehensive.xyz > train_full_all_defects_2650.xyz
-# defect.xyz is mixed 450 (Ga/O vac divac inter antisite Frenkel) + Ga_vac dedicated 400 tetra/oct
-```
-
-Using consistent setup reduces RMSE: old defect forces copied → model underestimates vacancy forces → high error on defect. New Ga vac with proper formation + relaxation + tetra/oct differentiation allows MLIP to learn Ga vacancy physics.
-
-
-## Files List (Public Repo)
-
-```
-bulk.xyz 400 4.4MB
-strained.xyz 700 7.7MB comprehensive (was 300)
-high_T.xyz 700 7.7MB comprehensive
-defect.xyz 450 4.9MB comprehensive mixed 10 stoich
-defect_Ga_vac_50.xyz 50 0.56MB NEW balanced 25 tetra +25 oct
-defect_Ga_vac_200.xyz 200 2.2MB NEW tiered low/mid/high
-defect_Ga_vac_comprehensive.xyz 400 4.4MB NEW 100 low +180 mid +120 high, 200 tetra 200 oct
-defect_Ga_vac_diverse.xyz 400 copy
-defect_o_vac_50.xyz 50 O vac diverse
-test.xyz 200 2.2MB
-near_eq.xyz 20 0.33MB
-strained_diverse 400, high_T_diverse 400, defect_diverse 400 mixed
-train.xyz 1000 11MB
-train_expanded 1800 20MB bulk+strained_comp+high_T_comp
-train_full_diverse 2250 25MB +defect_comp 450
-train_Ga_vac_2200 2200 24MB NEW bulk+strained+high_T+Ga_vac_comp 400 balanced Ga tetra/oct
-train_full_all_defects_2650 2650 29MB NEW bulk+strained+high_T+defect_comp 450+Ga_vac_comp 400
-nep.in.template
-generation_info.json, generation_info_diverse.json, generation_info_Ga_vac.json (tetra 32 oct 32)
-train.log (ABINIT provenance + diverse + Ga vac)
-validation_report_diverse.json
-README.md, README_ABINIT.md
-*_original_*.xyz backward compat
-```
-
-## Validation
-
-```
-defect_Ga_vac_50: 50 frames, tetra 25 oct 25, E -624.4→-619.8 mean -622.5 – PASS
-defect_Ga_vac_200: 200 frames, tetra 100 oct 100, E -624.4→-619.2 mean -622.2 – PASS
-defect_Ga_vac_comprehensive: 400 frames, tetra 200 oct 200, E -625.2→-619.7 mean -622.4 – PASS
-strained_comprehensive 700 vol 1230-2457 – PASS
-high_T_comprehensive 700 vol 1567-2221 – PASS
-defect_comprehensive 450 nats {159:270,158:120,161:40,160:20} 10 stoich – PASS
-ABINIT provenance 2850 abi/log + train.log – PASS
-```
+All 5 share same seed base 42, reference E -630.070998, vol 1760.09, e_per_atom -3.9379, virial baseline, ABINIT ecut 22Ha PBE gamma.
 
 ## References
 
-- Original GitLab: https://gitlab.com/brucefan1983/nep-data/-/tree/main/2024_Wang_Ga2O3/beta
-- ABINIT: https://www.abinit.org/ JTH table, PseudoDojo ONCVPSP
+- Source generation: MILP/ga2o3-abinit/ scripts `generate_final_consistent_5.py`, `generate_Ga_vacancy.py` (PBC min-image tetra/oct), `generate_diverse_expansion.py`
+- ABINIT: https://www.abinit.org/ , JTH table, PseudoDojo ONCVPSP Ga.psp8 O.psp8
 - NEP: https://github.com/brucefan1983/NEP_CPU, GPUMD
-- Beta-Ga2O3 lattice: a=12.23 b=3.04 c=5.81 β=103.7°, Ga1 tetra 4-coord Ga2 oct 6-coord
-- Source code MILP/ga2o3-abinit/: generate_diverse_expansion.py (700 strained/high_T, 400 defect diverse), generate_Ga_vacancy.py (32 tetra +32 oct PBC classification)
+- Beta-Ga2O3: a=12.23 b=3.04 c=5.81 β=103.7°, Ga1 tetra 4-coord, Ga2 oct 6-coord

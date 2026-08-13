@@ -1,15 +1,15 @@
-type  2 Ga O          # mandatory, must be first
-version  4             # NEP4 (ref used v3), NEP3 compat available as nep_v3.in
-cutoff  8 4            # radial 8 Å, angular 4 Å – supercell 24Å >2*cutoff ok, ref same
-n_max  8 8             # ref 8 8
-basis_size  8 8        # default for v4
-l_max  4 2             # ref 4 2 (3-body & 4-body)
-neuron  50             # ref 50 (default 30)
+type  2 Ga O
+version  4
+cutoff  8 4
+n_max  8 8
+basis_size  8 8
+l_max  4 2
+neuron  50
 lambda_e  1.0
-lambda_f  1.0          # forces mean 1.27/2.38/3.98 eV/A per learnings – need force weight
+lambda_f  1.0
 lambda_v  0.1
 lambda_1  0.05
-lambda_2  0.05         # regularization for 1000 frames
-batch  1000            # full batch for train 1000
+lambda_2  0.05
+batch  1000
 population  50
-generation  500000     # 500k → RMSE <1 meV/atom for beta simple per self-contained ABINIT surrogate validation
+generation  500000
