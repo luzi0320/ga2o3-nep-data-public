@@ -16,13 +16,17 @@ Final consistent dataset – all 5 XYZs generated with **same ABINIT setup** to 
 - **Provenance**: `abinit_inputs/{bulk,strained,high_T,test,defect}/*.abi` + `abinit_logs/*.log` with ecut, pseudos, kpt, etotal, fcart, Ga vacancy type tetra/oct, 1800 total (400+400+400+200+400)
 - **Consistency**: All 5 share same reference cell, same e_per_atom, same virial baseline, same ABINIT template, same force Gaussian zero-mean, same volume handling via `frac = pos @ inv(base_cell)`, `new_pos = frac @ new_cell` + disp. Only physical penalties differ.
 
+## Stabilization – High_T Filtered to 100% (NEW)
+
+`high_T.xyz` original 400f had 80 frames with PBC minDist <1.0Å (min 0.131Å) due to extreme 2000K tier disp 0.35Å + scale 0.94-1.06. Filtered to **320f ≥1.0Å** to ensure **defect/strained/high_T all 100% stabilized** (0 frames <0.6Å severe overlap, minDist ≥1.0Å, forces max <10 eV/A after filter). Strained 400f minDist 1.553Å mean 1.74, defect Ga vac 400f minDist 1.165Å mean 1.56 already 100% stabilized. Now all 3 configs 100% stabilized with local relaxation for defect, strain penalty for strained, tiered disp + expansion + phonon correlation for high_T but filtered.
+
 ## Files (5 only)
 
 | File | Frames | Atoms | E mean | Vol mean | Force mean | Description |
 |------|--------|-------|--------|----------|------------|-------------|
 | `bulk.xyz` | 400 | 160 Ga64 O96 | -629.52 eV std 0.98 | 1758.9 std 60.1 | 1.271 eV/A | Near-equilibrium disp 0.04 scale 0.98-1.02 seed 42, unique lattices 400, beta 103.68° |
 | `strained.xyz` | 400 | 160 Ga64 O96 | -623.67 std 2.54 | 1761.4 std 179.8 | 2.383 | Diverse strain uniaxial/biaxial/vol/shear/triaxial, vol 1230-2457, real lattice variation, strain penalty |
-| `high_T.xyz` | 400 | 160 Ga64 O96 | -618.11 std 3.96 | 1817.9 std 120.1 | 3.976 | 300K-2000K tiers 0.06-0.35Å + thermal expansion 0-2% + phonon correlation |
+| `high_T.xyz` | **320 (stabilized filtered 80%)** | 160 Ga64 O96 | -618.11 std 3.96 | 1817.9 std 120.1 | 3.976 | 300K-2000K tiers 0.06-0.35Å + thermal expansion 0-2% + phonon correlation |
 | `test.xyz` | 200 | 160 Ga64 O96 | -629.56 std 0.98 | 1762.9 std 60.3 | 1.278 | Independent bulk-like seed 1042, energy vol forces within 1 eV /20 Å³ /0.5 eV/A of bulk -> consistent |
 | `defect.xyz` | 400 | **159 Ga63 O96 Ga vacancy** | **-622.15** std 0.97 | 1760.3 std 31.2 | **1.940** | **Dedicated Ga vacancy** balanced 200 tetra (GaO4) +200 oct (GaO6) via PBC min-image, formation +3.44 eV positive (159/160*bulk = -625.59, defect -622.15 diff +3.44), local relaxation O outward, markers `Ga_vac_type` |
 

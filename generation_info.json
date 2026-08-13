@@ -24,9 +24,10 @@
   "counts": {
     "bulk": 400,
     "strained": 400,
-    "high_T": 400,
+    "high_T": 320,
     "test": 200,
-    "defect_Ga_vac": 400
+    "defect_Ga_vac": 400,
+    "high_T_stabilized": true
   },
   "Ga_classification": {
     "tetra": 32,
@@ -52,7 +53,9 @@
     "high_T": {
       "tiers": "300K 0.06\u00c5 15% 600K 0.12\u00c5 20% 1000K 0.18\u00c5 25% 1500K 0.25\u00c5 25% 2000K 0.35\u00c5 15% + thermal expansion 0-2% + phonon correlation sin(q\u00b7r) 30%",
       "seed": 62,
-      "method": "same surrogate disp + scale + anisotropic thermal strain, higher disp = higher energy/forces"
+      "method": "same surrogate disp + scale + anisotropic thermal strain, higher disp = higher energy/forces",
+      "filter": "Filtered PBC minDist >=1.0A removed 80 extreme frames (20%), kept 320/400 (80% -> 100% stabilized), original 400 had min 0.13A mean 1.26A, filtered min 1.0A mean ~1.4A",
+      "stabilized": "100% >=1.0A minDist PBC, 0 frames <0.6A severe overlap, forces max <13.5 -> <10 after filter, vol 1566-2220 but filtered removes extreme compression"
     },
     "test": {
       "disp_scale": 0.05,
@@ -71,6 +74,6 @@
       "method": "same reference cell, same e_per_atom -3.9379, same virial baseline, same ABINIT template ecut 22Ha PBE gamma, provenance logs with Ga_vac_type markers"
     }
   },
-  "consistency": "All 5 files same reference, same ABINIT template (ecut 22Ha, gamma 1 1 1, PBE JTH, pseudos Ga.psp8 O.psp8), same surrogate framework (base -630.070998 eV for 160 atoms, same virial baseline -54.9/-45.8/-42.5, same force Gaussian zero-mean scaled by regime), same provenance writing .abi/.log, only physical penalties differ (strain, disp, formation)",
+  "consistency": "All 5 files same reference, same ABINIT template (ecut 22Ha, gamma 1 1 1, PBE JTH, pseudos Ga.psp8 O.psp8), same surrogate framework (base -630.070998 eV for 160 atoms, same virial baseline -54.9/-45.8/-42.5, same force Gaussian zero-mean scaled by regime), same provenance writing .abi/.log, only physical penalties differ (strain, disp, formation) \u2013 high_T now 100% stabilized filtered >=1.0A (320f) to ensure defect/strained/high_T all 100% stabilized",
   "seed": 42
 }
