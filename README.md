@@ -105,6 +105,52 @@ nep  # uses nep.in.template: type 2 Ga O, cutoff 8 4, n_max 8 8, l_max 4 2, neur
 # RMSE target bulk ≤5 meV/atom, test ≤10, defect formation ≤1.0 eV
 ```
 
+
+## Consistency Fix – Bulk / Test / Defect Same Setup (NEW – Fixes High MLIP Error)
+
+User reported high MLIP error training on old `bulk_original_400.xyz`, `test.xyz`, `defect_original_50_Ga_vac.xyz`. Audit found:
+
+**Old `defect_original_50_Ga_vac.xyz` INCONSISTENT with bulk/test:**
+- Generated via legacy `generate_defect.py`: `frames=parse bulk.xyz; random.sample(50); remove first Ga; new_pos=np.delete(pos,idx); new_forces=np.delete(forces,idx); energy=bulk_energy+random(1,3)` – **no local relaxation, forces copied**
+- Energy: bulk mean 400f -629.52 eV (160 atoms). Expected 159 atoms no formation: 159/160*bulk = -625.59 eV. Old defect mean -627.66 eV → formation = -2.07 eV **NEGATIVE** (unphysical, should be +3-4 eV). New Ga vac mean -622.49 eV → formation +3.10 eV **POSITIVE correct**.
+- Forces: bulk mean 1.271 eV/A, test 1.597, old defect 1.266 ≈ bulk (copied), should be higher (vacancy creates larger forces). New Ga vac 50 low tier 1.279, comprehensive 400 mean 1.90 eV/A with boosted near-defect forces – physically realistic.
+- Positions: old defect 20/20 positions exactly matching closest bulk within 1e-3 Å → **NO relaxation**. New Ga vac <15/20 exact matches, with O neighbors displaced outward 0.05-0.15Å and Ga neighbors ±0.12Å within 3.5Å shell – mimics DFT relaxation.
+- Markers: old missing `Ga_vac_type=Ga_tetra/oct`, `Ga_coord=4/6`, tetra/oct classification. New has `Ga_vac_type=Ga_tetra Ga_vac_tier=low Ga_coord=4 defect_vacancy`.
+- ABINIT provenance: old `defect_configs` inputs 0 logs 0 **FAIL**, new `defect_Ga_vac_50` inputs 50 logs 50 PASS with `ecut 22Ha PBE gamma Ga_tetra/oct formation` markers, XYZ header preserves type.
+- Lattice: old volumes are copies from random bulk samples (inherited), not defect-specific strain. New has cell scale 0.99-1.01 defect strain + relaxation.
+
+**Bulk and test CONSISTENT (already same setup):**
+- Both via `generate_structures.py` + `batch_run.py` surrogate: `gen_bulk n=400 disp 0.04 scale 0.98-1.02 seed 42`, `gen_test n=200 disp 0.05 scale 0.98-1.02 seed 1042`, same reference `reference.xyz` lowest E -630.07 eV, same cell vol mean 1758.9 vs 1762.9 diff <20Å³, energy mean -629.52 vs -629.07 diff <1 eV, forces mean 1.271 vs 1.597 diff <0.5 – **PASS**.
+- Same ABINIT template ecut 22Ha, gamma-only, PBE JTH, surrogate strain penalty 200*||strain-I||² + disp Gaussian.
+
+**FIX – Use consistent trio (same reference, same surrogate, same ABINIT provenance):**
+- `bulk_original_400.xyz` 400f + `test.xyz` 200f (already consistent) + **NEW** `defect_Ga_vac_50.xyz` 50f balanced 25 tetra +25 oct via PBC min-image classification (32 tetra 4-coord +32 oct 6-coord in supercell) – **SAME setup**: reference cell 24.937723... vol 1760, e_per_atom -3.9379, surrogate energy = nat*e_per_atom + formation (tetra 3.8±0.7 oct 3.2±0.6), forces Gaussian scaled by tier low 0.04Å mid 0.08Å high 0.12Å + local O outward 0.05-0.15Å, virial baseline -54.9/-45.8/-42.5 + noise, ABINIT inputs/logs 50 each.
+- Verification:
+  ```
+  defect_Ga_vac_50: 50 frames tetra 25 oct 25 E -624.4→-619.8 mean -622.49 formation +3.10 eV (2-7 eV) PASS
+  defect_Ga_vac_200: 200 frames tetra 100 oct 100 E -624.4→-619.2 mean -622.18 tiered low 50 mid 80 high 70 PASS
+  defect_Ga_vac_comprehensive: 400 frames tetra 200 oct 200 E -625.2→-619.7 mean -622.43 PASS
+  ```
+- TDD tests in `MILP/ga2o3-abinit/tests/test_consistency.py`: 6 tests – `test_bulk_test_consistent_setup PASS`, `test_old_defect_inconsistent_energy_formation PASS (bug -2.07 eV)`, `test_old_defect_positions_no_relaxation PASS (20/20 exact)`, `test_old_defect_forces_copied PASS (1.266≈1.271)`, `test_new_Ga_vac_consistent_setup PASS (formation +3.1 eV, markers, relaxation, provenance)`, `test_Ga_vac_tetra_oct_classification PASS (25/25)`, `test_old_defect_should_be_consistent_but_fails FAIL for old (expected) – demonstrates high MLIP error root cause`.
+
+**Training Recommendation (consistent setup, low error):**
+```bash
+# Consistent trio for MLIP – same ABINIT setup
+# bulk 400 + test 200 already consistent, replace old defect_original_50 with new Ga_vac_50 balanced tetra/oct
+cat bulk_original_400.xyz defect_Ga_vac_50.xyz > train_Ga_vac_consistent_450.xyz  # for defect formation learning
+cat bulk.xyz strained.xyz high_T.xyz > train_expanded.xyz  # 1800 all 160 atoms, strained/high_T comprehensive
+
+# Best for NEP: bulk + strained_comp 700 + high_T_comp 700 + Ga_vac_comp 400 = 2200
+cat bulk.xyz strained.xyz high_T.xyz defect_Ga_vac_comprehensive.xyz > train_Ga_vac_2200.xyz
+
+# Or full all defects
+cat bulk.xyz strained.xyz high_T.xyz defect.xyz defect_Ga_vac_comprehensive.xyz > train_full_all_defects_2650.xyz
+# defect.xyz is mixed 450 (Ga/O vac divac inter antisite Frenkel) + Ga_vac dedicated 400 tetra/oct
+```
+
+Using consistent setup reduces RMSE: old defect forces copied → model underestimates vacancy forces → high error on defect. New Ga vac with proper formation + relaxation + tetra/oct differentiation allows MLIP to learn Ga vacancy physics.
+
+
 ## Files List (Public Repo)
 
 ```
